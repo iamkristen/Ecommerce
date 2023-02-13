@@ -102,7 +102,7 @@ router.get("/:username/viewcart",async (req,res)=>{
         path:"cartitems",
         populate:[{
             path:"product",
-            model:"Product",
+            model:"Product", 
         },{
             path:"styles",
             model:"productstyle"
