@@ -3,9 +3,7 @@ const uuid = require("uuid");
 
 const userSchema = new Schema({
     username : {type: String, unique: true},
-    fullname : {
-        type: String,
-    },
+    fullname : {type: String},
     email:{
         type:String,unique:true
     },
