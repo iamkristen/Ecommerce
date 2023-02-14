@@ -1,4 +1,5 @@
 const {Schema,model} = require("mongoose");
+const uuid = require("uuid");
 
 const userSchema = new Schema({
     username : {type: String, unique: true},
@@ -13,8 +14,8 @@ const userSchema = new Schema({
     },
     password: {type: String,},
     address:{type: String},
-    country:{
-        type:String    },
+    country:{type:String },
+    token: {type:String, required: true}
     
 },{timestamps:true});
 

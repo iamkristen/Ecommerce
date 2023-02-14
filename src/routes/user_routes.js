@@ -5,13 +5,17 @@ const userModel = require('./../models/user_model');
 const cartModel = require('./../models/cart_model');
 const cartItemModel = require('./../models/cart_item_model');
 const { populate } = require("../models/product_model");
+const jwt = require("jsonwebtoken");
+const verify = require("./../middlewares/jwt")
 
 router.post("/register",async (req,res)=>{
     const userData = req.body;
 
     const hashPassword = crypto.AES.encrypt(req.body.password,process.env.PASS_SEC);
     userData.password = hashPassword;
-
+    
+    const token = jwt.sign({username : userData.username},"SecretKey")
+    userData.token = token;
     const newUser = new userModel(userData);
     await newUser.save((err)=>{
         if(err){
@@ -39,7 +43,7 @@ const password = crypto.AES.decrypt(foundUser.password,process.env.PASS_SEC).toS
     }
 })
 
-router.get("/",async (req,res)=>{
+router.get("/",verify,async (req,res)=>{
     await userModel.find().exec((err,result)=>{
         if(err){
         res.json({success:false,error:err});
@@ -49,7 +53,7 @@ router.get("/",async (req,res)=>{
     });
 })
 
-router.get("/:username",async (req,res)=>{
+router.get("/:username",verify,async (req,res)=>{
     const username = req.params.username;
     const foundUser = await userModel.findOne({username:username});
     if(!foundUser){
@@ -60,7 +64,7 @@ router.get("/:username",async (req,res)=>{
 })
 
 
-router.put("/",async(req,res)=>{
+router.put("/",verify,async(req,res)=>{
     var username = req.body.username;
     var data = await userModel.findOneAndUpdate({username: username},req.body);
     if(!data){
@@ -71,7 +75,7 @@ router.put("/",async(req,res)=>{
     res.json({success:true,data:updated});
 })
 
-router.post("/:username/addtocart",async(req,res)=>{
+router.post("/:username/addtocart",verify,async(req,res)=>{
     const username = req.params.username;
     const cartItem = req.body;
     const userCart = await cartModel.findOne({username:username});
@@ -90,13 +94,13 @@ router.post("/:username/addtocart",async(req,res)=>{
             res.json({success:false,error:err});
             return;
         }console.log(newCartItem._id);
-    console.log(newCartItem.cartid);
+    // console.log(newCartItem.cartid);
         await cartModel.findOneAndUpdate({cartid:newCartItem.cartid},{ $push: { cartitems:newCartItem._id } });
         res.json({success:true,data: newCartItem});
     })
 })
 
-router.get("/:username/viewcart",async (req,res)=>{
+router.get("/:username/viewcart",verify,async (req,res)=>{
     const username = req.params.username;
     const foundCart = await cartModel.findOne({username:username}).populate({
         path:"cartitems",
@@ -116,7 +120,7 @@ router.get("/:username/viewcart",async (req,res)=>{
     res.json({success:true,data: foundCart});
 })
 
-router.delete("/:username/removefromcart",async(req,res)=>{
+router.delete("/:username/removefromcart",verify,async(req,res)=>{
     const username = req.params.username;
 
     const presentCart = await cartModel.findOneAndUpdate({username: username},{$pull: {cartitems:req.body.itemid}});
@@ -126,7 +130,7 @@ router.delete("/:username/removefromcart",async(req,res)=>{
     }
     res.json({success:true,data: "Item removed"});
 })
-
+b
 
 
 module.exports = router;
